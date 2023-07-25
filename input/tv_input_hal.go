@@ -27,9 +27,12 @@ func tv_input_hal_DefaultsFactory() (android.Module) {
 func globalDefaults(ctx android.BaseContext) ([]string) {
     var cppflags []string
     productSupportDtvkit := ctx.AConfig().Getenv("PRODUCT_SUPPORT_DTVKIT")
+    productSupportTunerFramework := ctx.AConfig().Getenv("PRODUCT_SUPPORT_TUNER_FRAMEWORK")
     if productSupportDtvkit == "true" {
-        fmt.Println("-DSUPPORT_DTVKIT")
-        cppflags = append(cppflags,"-DSUPPORT_DTVKIT")
+        if productSupportTunerFramework == "false" {
+            fmt.Println("-DSUPPORT_DTVKIT")
+            cppflags = append(cppflags,"-DSUPPORT_DTVKIT")
+        }
     }
     return cppflags
 }
