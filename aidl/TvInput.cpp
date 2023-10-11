@@ -212,30 +212,31 @@ void TvInput::notify(struct tv_input_device* __unused, tv_input_event_t* event,
             case SOURCE_ADTV:
             case SOURCE_DTVKIT:
             case SOURCE_DTVKIT_PIP:
-                //tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_TV_TUNER;
+                tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_TV_TUNER;
+                tvInputEvent.deviceInfo.audioDevice.type.connection = "";
                 break;
             case SOURCE_AV1:
             case SOURCE_AV2:
-                //tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
+                tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
                 tvInputEvent.deviceInfo.audioDevice.type.connection = AudioDeviceDescription::CONNECTION_ANALOG;
                 break;
             case SOURCE_HDMI1:
             case SOURCE_HDMI2:
             case SOURCE_HDMI3:
             case SOURCE_HDMI4:
-                //tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
+                tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
                 tvInputEvent.deviceInfo.audioDevice.type.connection = AudioDeviceDescription::CONNECTION_HDMI;
                 break;
             case SOURCE_SPDIF:
-                //tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
+                tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
                 tvInputEvent.deviceInfo.audioDevice.type.connection = AudioDeviceDescription::CONNECTION_SPDIF;
                 break;
             case SOURCE_AUX:
-                //tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
+                tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
                 tvInputEvent.deviceInfo.audioDevice.type.connection = AudioDeviceDescription::CONNECTION_ANALOG;
                 break;
             case SOURCE_ARC:
-                //tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
+                tvInputEvent.deviceInfo.audioDevice.type.type = AudioDeviceType::IN_DEVICE;
                 tvInputEvent.deviceInfo.audioDevice.type.connection = AudioDeviceDescription::CONNECTION_HDMI_ARC;
                 break;
             default:
