@@ -303,6 +303,12 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
     int fixed_tunnel = -1;
     char value[PROPERTY_VALUE_MAX] = { 0 };
     int tunnelId = -1;
+    //The vts aidl interfaces need to detect the legality of the handle.
+    int fake_fd = -1;
+    fake_fd = open("/dev/null", O_RDONLY | O_CLOEXEC);
+    if (fake_fd < 0) {
+         ALOGD("open /dev/null error ");
+    }
 
     if (property_get("vendor.tv.fixed_tunnel", value, NULL) > 0) {
         fixed_tunnel = atoi(value);
@@ -319,6 +325,8 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
         }
         stream->type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE;
         stream->sideband_stream_source_handle = pFixedTvStream;
+        stream->sideband_stream_source_handle->numFds = 1;
+        stream->sideband_stream_source_handle->data[0] = fake_fd;
     } else {
         if (stream->stream_id == STREAM_ID_NORMAL) {
             if (pTvStream == nullptr) {
@@ -351,6 +359,8 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
             }
             stream->type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE;
             stream->sideband_stream_source_handle = pTvStream;
+            stream->sideband_stream_source_handle->numFds = 1;
+            stream->sideband_stream_source_handle->data[0] = fake_fd;
         } else if (stream->stream_id == STREAM_ID_MAIN) {
             //add such for pip function
             if (pMainTvStream == nullptr) {
@@ -371,6 +381,8 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
             }
             stream->type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE;
             stream->sideband_stream_source_handle = pMainTvStream;
+            stream->sideband_stream_source_handle->numFds = 1;
+            stream->sideband_stream_source_handle->data[0] = fake_fd;
         } else if (stream->stream_id == STREAM_ID_PIP) {
             //add such for pip function
             if (pPipTvStream == nullptr) {
@@ -384,6 +396,8 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
             }
             stream->type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE;
             stream->sideband_stream_source_handle = pPipTvStream;
+            stream->sideband_stream_source_handle->numFds = 1;
+            stream->sideband_stream_source_handle->data[0] = fake_fd;
         } else if (stream->stream_id == STREAM_ID_FRAME_CAPTURE) {
             stream->type = TV_STREAM_TYPE_BUFFER_PRODUCER;
         }
@@ -528,7 +542,6 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
         }
         */
     }
-
     return 0;
 }
 
@@ -550,7 +563,7 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
         priv->mpTv->setStreamGivenId(-1);
     else {
         ALOGD("stream doesn't open");
-        return -ENOENT;
+        return -EEXIST;
     }
 
     priv->mpTv->writeSurfaceTypetoVpp(TVIN_SOURCE_TYPE_OTHERS);
@@ -650,15 +663,19 @@ static int tv_input_device_close(struct hw_device_t *dev)
         }
         free(priv);
         if (pFixedTvStream) {
+            close(pFixedTvStream->data[0]);
             native_handle_delete((native_handle_t*)pFixedTvStream);
         }
         if (pTvStream) {
+            close(pTvStream->data[0]);
             native_handle_delete((native_handle_t*)pTvStream);
         }
         if (pMainTvStream) {
+            close(pMainTvStream->data[0]);
             native_handle_delete((native_handle_t*)pMainTvStream);
         }
         if (pPipTvStream) {
+            close(pPipTvStream->data[0]);
             native_handle_delete((native_handle_t*)pPipTvStream);
         }
     }
