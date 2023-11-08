@@ -123,7 +123,7 @@ void TvInput::init() {
         }
         return ::ndk::ScopedAStatus::ok();
     } else if (ret == -EINVAL) {
-        return ::ndk::ScopedAStatus::fromServiceSpecificError(STATUS_INVALID_ARGUMENTS);
+        return ::ndk::ScopedAStatus::fromServiceSpecificError(STATUS_NO_RESOURCE);
     }
     return ::ndk::ScopedAStatus::ok();
 }
