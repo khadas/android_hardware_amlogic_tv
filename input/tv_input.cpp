@@ -550,7 +550,7 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
         priv->mpTv->setStreamGivenId(-1);
     else {
         ALOGD("stream doesn't open");
-        return -ENOENT;
+        return -EEXIST;
     }
 
     priv->mpTv->writeSurfaceTypetoVpp(TVIN_SOURCE_TYPE_OTHERS);
@@ -558,6 +558,28 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
     if (stream_id == STREAM_ID_NORMAL || stream_id == STREAM_ID_MAIN || stream_id == STREAM_ID_PIP) {
         if (!channelCheckStatus(priv, 1, device_id))
             channelControl(priv, false, device_id, stream_id);
+
+        if (pFixedTvStream != nullptr) {
+            ALOGD("destroy pFixedTvStream");
+            am_gralloc_destroy_sideband_handle((native_handle_t*)pFixedTvStream);
+            pFixedTvStream = nullptr;
+        }
+        if (pTvStream != nullptr) {
+            ALOGD("destroy pTvStream");
+            am_gralloc_destroy_sideband_handle((native_handle_t*)pTvStream);
+            pTvStream = nullptr;
+        }
+        if (pMainTvStream != nullptr) {
+            ALOGD("destroy pMainTvStream");
+            am_gralloc_destroy_sideband_handle((native_handle_t*)pMainTvStream);
+            pMainTvStream = nullptr;
+        }
+        if (pPipTvStream != nullptr) {
+            ALOGD("destroy pPipTvStream");
+            am_gralloc_destroy_sideband_handle((native_handle_t*)pPipTvStream);
+            pPipTvStream = nullptr;
+        }
+
         return 0;
     } else if (stream_id == STREAM_ID_FRAME_CAPTURE) {
         ALOGD("tv_input_close_stream STREAM_ID_FRAME_CAPTURE is not supported");
