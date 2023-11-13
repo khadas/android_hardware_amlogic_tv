@@ -441,6 +441,33 @@ BasicVdecState TvServerHidlClient::getBasicVdecStatusInfo(int vdecId) {
     return info;
 }
 
+int TvServerHidlClient::StartTvInPIP( int32_t source_input ) {
+    Return<int32_t> ret = mTvServer->StartTvInPIP(source_input);
+    if (!ret.isOk()) {
+        ALOGE("StartTvInPIP error");
+    }
+    return ret;
+
+}
+
+int TvServerHidlClient::StopTvInPIP() {
+    Return<int32_t> ret = mTvServer->StopTvInPIP();
+    if (!ret.isOk()) {
+        ALOGE("StopTvInPIP error");
+    }
+    return ret;
+
+}
+
+int TvServerHidlClient::IsSupportPIP() {
+    Return<int32_t> ret = mTvServer->IsSupportPIP();
+    if (!ret.isOk()) {
+        ALOGE("IsSupportPIP error");
+    }
+    return ret;
+}
+
+
 // callback from tv service
 Return<void> TvServerHidlClient::TvServerHidlCallback::notifyCallback(const TvHidlParcel& hidlParcel)
 {

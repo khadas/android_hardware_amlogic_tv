@@ -104,6 +104,10 @@ public:
     int getScreenColorForSignalChange();
     int dtvGetSignalSNR();
     BasicVdecState getBasicVdecStatusInfo(int vdecId);
+    int StartTvInPIP( int32_t source_input );
+    int StopTvInPIP();
+    int IsSupportPIP();
+
 private:
     class TvServerHidlCallback : public ITvServerCallback {
     public:

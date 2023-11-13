@@ -110,6 +110,9 @@ public:
     virtual void notify(const tv_parcel_t &parcel);
     int writeSurfaceTypetoVpp(tvin_surface_type_t type);
     void setStreamTunnelId(int id);
+    int StartTvInPIP( int32_t source_input );
+    int StopTvInPIP();
+    bool IsHdmiPIP(int32_t source_input);
 
 private:
     pthread_mutex_t mMutex;

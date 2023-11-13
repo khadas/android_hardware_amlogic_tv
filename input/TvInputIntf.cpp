@@ -419,3 +419,22 @@ int TvInputIntf::writeSys(const char *path, const char *val) {
     return 0;
 }
 
+int TvInputIntf::StartTvInPIP( int32_t source_input ) {
+    return  mTvSession->StartTvInPIP(source_input);
+}
+
+int TvInputIntf::StopTvInPIP() {
+    return mTvSession->StopTvInPIP();
+}
+
+bool TvInputIntf::IsHdmiPIP(int32_t source_input ) {
+    bool ret = false;
+    if (SOURCE_YPBPR2 < (tv_source_input_t)source_input &&
+        (tv_source_input_t)source_input < SOURCE_HDMI4 &&
+        1 == mTvSession->IsSupportPIP()) {
+        ret = true;
+     }
+    ALOGE("%s, source_input:%d, ret = %d\n", __FUNCTION__, source_input, ret);
+    return ret;
+}
+
