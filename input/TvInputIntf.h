@@ -28,9 +28,6 @@
 #include <unistd.h>
 
 #include "TvServerHidlClient.h"
-#ifdef SUPPORT_DTVKIT
-#include "DTVKitHidlClient.h"
-#endif
 
 using namespace android;
 
@@ -127,9 +124,6 @@ private:
     tv_source_input_t mSourceInput;
     sp<TvServerHidlClient> mTvSession;
     int writeSys(const char *path, const char *val);
-#ifdef SUPPORT_DTVKIT
-    sp<DTVKitHidlClient> mDkSession;
-#endif
     TvPlayObserver *mpObserver;
 };
 

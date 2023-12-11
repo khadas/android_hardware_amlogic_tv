@@ -28,7 +28,6 @@
 #include "TvStreamConfigWrapper.h"
 
 #include "tv_input.h"
-#include "TvInputIntf.h"
 
 using namespace android;
 using namespace std;
@@ -83,7 +82,6 @@ class TvInput : public BnTvInput {
     tv_input_device_t* mDevice;
     tv_input_callback_ops_t mCallbackOps;
 
-    TvInputIntf* mTvInputIntf;
     int mSupportDevices[20];
     int mDeviceCount;
 };

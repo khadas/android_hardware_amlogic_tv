@@ -24,26 +24,32 @@
 #include <utils/Log.h>
 #include <string.h>
 #include "TvInputIntf.h"
+#include "DTVKitHidlClient.h"
 #include "tvcmd.h"
 #include <math.h>
 #include <cutils/properties.h>
-#ifdef SUPPORT_DTVKIT
 #include <json/json.h>
-#endif
 
 #define TV_INPUT_VERSION "V2.00"
 
 using namespace android;
 
+sp<DTVKitHidlClient> mDkSession = nullptr;
+
 TvInputIntf::TvInputIntf() : mpObserver(nullptr) {
     mTvSession = TvServerHidlClient::connect(CONNECT_TYPE_HAL);
     mTvSession->setListener(this);
-
-#ifdef SUPPORT_DTVKIT
-    mDkSession = DTVKitHidlClient::connect(DTVKitHidlClient::CONNECT_TYPE_HAL);
-#endif
-
     pthread_mutex_init(&mMutex, NULL);
+
+    sp<IDTVKitServer> dtvkitService = IDTVKitServer::tryGetService();
+    if (dtvkitService == nullptr) {
+       usleep(500*1000); //sleep 500ms
+       dtvkitService = IDTVKitServer::tryGetService();
+    };
+    if (dtvkitService != nullptr) {
+        ALOGI("connect to IDTVKitServer");
+        mDkSession = DTVKitHidlClient::connect(DTVKitHidlClient::CONNECT_TYPE_HAL);
+    }
 
     char buf[PROPERTY_VALUE_MAX] = { 0 };
     int ret = property_get("ro.vendor.platform.has.tvuimode", buf, "false");
@@ -62,11 +68,9 @@ TvInputIntf::~TvInputIntf()
     init();
 
     mTvSession.clear();
-
-#ifdef SUPPORT_DTVKIT
-    mDkSession.clear();
-#endif
-
+    if (mDkSession != nullptr) {
+        mDkSession.clear();
+    }
     pthread_mutex_destroy(&mMutex);
 }
 
@@ -120,11 +124,9 @@ void TvInputIntf::notify(const tv_parcel_t &parcel)
 int TvInputIntf::startTv(tv_source_input_t source_input)
 {
     int ret = 0;
-#ifdef SUPPORT_DTVKIT
     Json::Value json;
     json[0] = "";
     Json::FastWriter writer;
-#endif
 
     pthread_mutex_lock(&mMutex);
 
@@ -133,10 +135,10 @@ int TvInputIntf::startTv(tv_source_input_t source_input)
     setSourceStatus(true);
 
     if (SOURCE_DTVKIT == source_input || SOURCE_DTVKIT_PIP == source_input) {
-#ifdef SUPPORT_DTVKIT
-        mDkSession->request(std::string("Dvb.requestDtvDevice"),
-                writer.write(json));
-#endif
+        if (mDkSession != nullptr) {
+            mDkSession->request(std::string("Dvb.requestDtvDevice"),
+                    writer.write(json));
+        }
         ret = 0;
     } else {
         mTvSession->setTunnelId(mTunnelId);
@@ -153,11 +155,9 @@ int TvInputIntf::startTv(tv_source_input_t source_input)
 int TvInputIntf::stopTv(tv_source_input_t source_input)
 {
     int ret = 0;
-#ifdef SUPPORT_DTVKIT
     Json::Value json;
     json[0] = "";
     Json::FastWriter writer;
-#endif
 
     pthread_mutex_lock(&mMutex);
 
@@ -166,10 +166,10 @@ int TvInputIntf::stopTv(tv_source_input_t source_input)
     setSourceStatus(false);
 
     if (SOURCE_DTVKIT == source_input || SOURCE_DTVKIT_PIP == source_input) {
-#ifdef SUPPORT_DTVKIT
-        mDkSession->request(std::string("Dvb.releaseDtvDevice"),
-                writer.write(json));
-#endif
+        if (mDkSession != nullptr) {
+            mDkSession->request(std::string("Dvb.releaseDtvDevice"),
+                    writer.write(json));
+        }
         ret = 0;
     } else {
         ret = mTvSession->stopTv();
