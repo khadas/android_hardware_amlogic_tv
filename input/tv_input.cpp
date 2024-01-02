@@ -323,7 +323,7 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
         if (stream->stream_id == STREAM_ID_NORMAL) {
             if (pTvStream == nullptr) {
                 if ((SOURCE_DTVKIT == input_id) || (SOURCE_ADTV == input_id)) {
-                    if (priv->mpTv->isMultiDemux()) {
+                    if (priv->mpTv->isMultiDemux() || fixed_tunnel == 1) {
                         pTvStream = am_gralloc_create_sideband_handle(AM_FIXED_TUNNEL, 1);
                         tunnelId = 1;
                     } else {
@@ -341,7 +341,7 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
                     ALOGE("tvstream can not be initialized");
                     return -EINVAL;
                 }
-            } else if (priv->mpTv->isMultiDemux()) {
+            } else if (priv->mpTv->isMultiDemux()  || fixed_tunnel == 1) {
                 if ((SOURCE_DTVKIT == input_id) || (SOURCE_ADTV == input_id)) {
                     tunnelId = 1;
                 } else {
