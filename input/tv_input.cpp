@@ -110,17 +110,25 @@ void channelControl(tv_input_private_t *priv, bool opsStart, int device_id, int 
                     priv->mpTv->stopTv(hold_source);
                 }
             }
+            if (stream_id  == STREAM_ID_PIP && (SOURCE_YPBPR2 < device_id && device_id < SOURCE_VGA)) {
+                priv->mpTv->StartTvInPIP((tv_source_input_t) device_id);
+            } else {
+                priv->mpTv->startTv((tv_source_input_t) device_id);
+                priv->mpTv->switchSourceInput((tv_source_input_t) device_id);
+                priv->mpTv->setDeviceGivenId(device_id);
+                priv->mpTv->setStreamGivenId(stream_id);
+            }
 
-            priv->mpTv->startTv((tv_source_input_t) device_id);
-            priv->mpTv->switchSourceInput((tv_source_input_t) device_id);
-            priv->mpTv->setDeviceGivenId(device_id);
-            priv->mpTv->setStreamGivenId(stream_id);
         } else {
-            tv_source_input_t wait_source = priv->mpTv->checkWaitSource(true);
-
             /* Force the current source to stop when the current source blocks the start of other sources,
              * and the close action of the blocked source is also triggered.
              */
+            if (stream_id  == STREAM_ID_PIP && (SOURCE_YPBPR2 < device_id && device_id < SOURCE_VGA)) {
+                priv->mpTv->StopTvInPIP();
+                return;
+            }
+
+            tv_source_input_t wait_source = priv->mpTv->checkWaitSource(true);
             if (priv->mpTv->getCurrentSourceInput() != device_id) {
                 if (priv->mpTv->getSourceStatus() && device_id == wait_source) {
                     priv->mpTv->stopTv((tv_source_input_t) priv->mpTv->getCurrentSourceInput());
@@ -276,7 +284,7 @@ static bool getAvailableStreamConfigs(int dev_id __unused, int *num_configuratio
             mconfig[1].max_video_height = 1080;
             break;
         default:
-            mconfig[0].stream_id = STREAM_ID_NORMAL;
+            mconfig[0].stream_id = STREAM_ID_PIP;
             mconfig[0].type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE ;
             mconfig[0].max_video_width = 1920;
             mconfig[0].max_video_height = 1080;
@@ -330,7 +338,7 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
                         pTvStream = am_gralloc_create_sideband_handle(AM_TV_SIDEBAND, 1);
                     }
                 } else {
-                    if (priv->mpTv->isMultiDemux()) {
+                    if (priv->mpTv->isMultiDemux()|| fixed_tunnel == 1) {
                         pTvStream = am_gralloc_create_sideband_handle(AM_FIXED_TUNNEL, 0);
                         tunnelId = 0;
                     }
@@ -374,9 +382,13 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
         } else if (stream->stream_id == STREAM_ID_PIP) {
             //add such for pip function
             if (pPipTvStream == nullptr) {
-                ALOGD("getTvStream stream_id=%d tunnelId=%d", stream->stream_id, 2);
-                pPipTvStream = am_gralloc_create_sideband_handle(AM_FIXED_TUNNEL, 2);
-                tunnelId = 2;
+                if (SOURCE_YPBPR2 < input_id && input_id < SOURCE_VGA && priv->mpTv->IsHdmiPIP(input_id)) {
+                    ALOGE("getTvStream HDMI PIP stream_id=%d tunnelId=%d", stream->stream_id, 3);
+                    pPipTvStream = am_gralloc_create_sideband_handle(AM_FIXED_TUNNEL, 3);
+                } else {
+                    ALOGD("getTvStream DTVKIT PIP stream_id=%d tunnelId=%d", stream->stream_id, 2);
+                    pPipTvStream = am_gralloc_create_sideband_handle(AM_FIXED_TUNNEL, 2);
+                }
             if (pPipTvStream == nullptr) {
                     ALOGE("pip tvstream can not be initialized");
                     return -EINVAL;
@@ -502,8 +514,10 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
         priv->mpTv->writeSurfaceTypetoVpp(TVIN_SOURCE_TYPE_OTHERS);
     }
 
-    if (stream->stream_id == STREAM_ID_NORMAL || stream->stream_id == STREAM_ID_MAIN || stream->stream_id == STREAM_ID_PIP) {
-        if (!channelCheckStatus(priv, 0, device_id))
+    if (stream->stream_id == STREAM_ID_PIP && priv->mpTv->IsHdmiPIP(device_id)) {
+        channelControl(priv, true, device_id, stream->stream_id);
+    } else if (stream->stream_id == STREAM_ID_NORMAL || stream->stream_id == STREAM_ID_MAIN || stream->stream_id == STREAM_ID_PIP) {
+        if (!channelCheckStatus(priv, 0, device_id) )
             channelControl(priv, true, device_id, stream->stream_id);
     } else if (stream->stream_id == STREAM_ID_FRAME_CAPTURE) {
         ALOGE("tv_input_open_stream STREAM_ID_FRAME_CAPTURE is not supported");
@@ -553,33 +567,38 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
         return -EEXIST;
     }
 
+
     priv->mpTv->writeSurfaceTypetoVpp(TVIN_SOURCE_TYPE_OTHERS);
 
-    if (stream_id == STREAM_ID_NORMAL || stream_id == STREAM_ID_MAIN || stream_id == STREAM_ID_PIP) {
-        if (!channelCheckStatus(priv, 1, device_id))
+    if (stream_id == STREAM_ID_PIP && priv->mpTv->IsHdmiPIP(device_id)) {
             channelControl(priv, false, device_id, stream_id);
-
-        if (pFixedTvStream != nullptr) {
-            ALOGD("destroy pFixedTvStream");
-            am_gralloc_destroy_sideband_handle((native_handle_t*)pFixedTvStream);
-            pFixedTvStream = nullptr;
-        }
-        if (pTvStream != nullptr) {
-            ALOGD("destroy pTvStream");
-            am_gralloc_destroy_sideband_handle((native_handle_t*)pTvStream);
-            pTvStream = nullptr;
-        }
-        if (pMainTvStream != nullptr) {
-            ALOGD("destroy pMainTvStream");
-            am_gralloc_destroy_sideband_handle((native_handle_t*)pMainTvStream);
-            pMainTvStream = nullptr;
-        }
-        if (pPipTvStream != nullptr) {
-            ALOGD("destroy pPipTvStream");
+            if (pPipTvStream != nullptr) {
+            ALOGD("close pip, destroy pPipTvStream");
             am_gralloc_destroy_sideband_handle((native_handle_t*)pPipTvStream);
             pPipTvStream = nullptr;
+            }
+            return 0;
+    } else if (stream_id == STREAM_ID_NORMAL || stream_id == STREAM_ID_MAIN || stream_id == STREAM_ID_PIP) {
+        if (!channelCheckStatus(priv, 1, device_id)) {
+            channelControl(priv, false, device_id, stream_id);
+            if (pTvStream != nullptr && stream_id == STREAM_ID_NORMAL) {
+                ALOGD("destroy pTvStream");
+                am_gralloc_destroy_sideband_handle((native_handle_t*)pTvStream);
+                pTvStream = nullptr;
+            } else if (pMainTvStream != nullptr && stream_id == STREAM_ID_MAIN) {
+                ALOGD("destroy pMainTvStream");
+                am_gralloc_destroy_sideband_handle((native_handle_t*)pMainTvStream);
+                pMainTvStream = nullptr;
+            } else if (pPipTvStream != nullptr && stream_id == STREAM_ID_PIP) {
+                ALOGD("destroy pPipTvStream");
+                am_gralloc_destroy_sideband_handle((native_handle_t*)pPipTvStream);
+                pPipTvStream = nullptr;
+            } else if (pFixedTvStream != nullptr) {
+                ALOGD("destroy pFixedTvStream");
+                am_gralloc_destroy_sideband_handle((native_handle_t*)pFixedTvStream);
+                pFixedTvStream = nullptr;
+            }
         }
-
         return 0;
     } else if (stream_id == STREAM_ID_FRAME_CAPTURE) {
         ALOGD("tv_input_close_stream STREAM_ID_FRAME_CAPTURE is not supported");
