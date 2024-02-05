@@ -23,18 +23,19 @@
 #include <hardware/tv_input.h>
 #include "tv_input.h"
 #include <tvcmd.h>
-#include <ui/GraphicBufferMapper.h>
-#include <ui/GraphicBuffer.h>
+#include <cutils/log.h>
+//#include <ui/GraphicBufferMapper.h>
+//#include <ui/GraphicBuffer.h>
 #include <amlogic/am_gralloc_ext.h>
 #include <hardware/hardware.h>
 #include <linux/videodev2.h>
-#include <android/native_window.h>
+//#include <android/native_window.h>
 
 #include <cutils/properties.h>
 
-static const int SCREENSOURCE_GRALLOC_USAGE = (
-    GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
-    GRALLOC_USAGE_SW_READ_RARELY | GRALLOC_USAGE_SW_WRITE_NEVER);
+//static const int SCREENSOURCE_GRALLOC_USAGE = (
+//    GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER |
+//    GRALLOC_USAGE_SW_READ_RARELY | GRALLOC_USAGE_SW_WRITE_NEVER);
 
 static int capWidth;
 static int capHeight;

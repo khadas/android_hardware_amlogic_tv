@@ -62,11 +62,9 @@ cc_binary {
     shared_libs: [
         "libbase",
         "liblog",
-        "libfmq",
         "libcutils",
         "libbinder_ndk",
         "android.hardware.tv.input-V1-ndk",
-        "android.hardware.common.fmq-V1-ndk",
         "android.media.audio.common.types-V1-ndk",
         "tv_input.amlogic",
         "vendor.amlogic.hardware.tvserver@1.0"

@@ -19,14 +19,13 @@
 #include <android-base/logging.h>
 #include <android/binder_manager.h>
 #include <android/binder_process.h>
-#include <utils/Log.h>
 
 #include "TvInput.h"
 
 using ::aidl::android::hardware::tv::input::TvInput;
 
 int main() {
-    ABinderProcess_setThreadPoolMaxThreadCount(8);
+    ABinderProcess_setThreadPoolMaxThreadCount(3);
     std::shared_ptr<TvInput> tvInput = ndk::SharedRefBase::make<TvInput>();
     tvInput->init();
 

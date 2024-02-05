@@ -38,6 +38,27 @@ license {
     ],
 }
 
+bootstrap_go_package {
+    name: "soong-tv_input_hal",
+    pkgPath: "android/soong/tv_input_hal",
+    deps: [
+    "blueprint",
+    "blueprint-pathtools",
+    "soong",
+    "soong-android",
+    "soong-cc",
+    "soong-genrule",
+    ],
+    srcs: [
+        "tv_input_hal.go",
+    ],
+    pluginFor: ["soong_build"],
+}
+
+hardware_tv_hal_go_defaults {
+    name: "hardware_tv_hal_go_defaults",
+}
+
 cc_library_shared {
     name: "tv_input.amlogic",
     relative_install_path: "hw",
@@ -46,15 +67,11 @@ cc_library_shared {
         "libcutils",
         "libutils",
         "libtvbinder",
-        "libbinder",
-        "libui",
+        "libbinder_ndk",
         "liblog",
-        "libhardware",
         "libamgralloc_ext",
-        "libvideotunnel",
-        "vendor.amlogic.hardware.dtvkitserver@1.0",
-        "libdtvkithidlclient",
     ],
+    defaults: ["hardware_tv_hal_go_defaults"],
     header_libs: ["libhardware_headers"],
     required: ["libtvbinder"],
     srcs: [
@@ -80,6 +97,4 @@ cc_library_shared {
         "external/jsoncpp/include",
     ],
     proprietary: true,
-
-    static_libs: ["libjsoncpp"],
 }

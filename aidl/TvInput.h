@@ -21,7 +21,7 @@
 
 #include <aidl/android/hardware/tv/input/TvMessageEventType.h>
 #include <aidl/android/media/audio/common/AudioDeviceDescription.h>
-#include <fmq/AidlMessageQueue.h>
+
 #include <map>
 #include <unordered_map>
 #include "TvInputDeviceInfoWrapper.h"
@@ -37,7 +37,6 @@ using ::aidl::android::hardware::common::fmq::SynchronizedReadWrite;
 using ::aidl::android::media::audio::common::AudioDeviceDescription;
 using ::aidl::android::media::audio::common::AudioDeviceType;
 
-using ::android::AidlMessageQueue;
 
 namespace aidl {
 namespace android {
@@ -82,7 +81,7 @@ class TvInput : public BnTvInput {
     tv_input_device_t* mDevice;
     tv_input_callback_ops_t mCallbackOps;
 
-    int mSupportDevices[20];
+//    int mSupportDevices[20];
     int mDeviceCount;
 };
 
