@@ -302,8 +302,13 @@ static bool getAvailableStreamConfigs(int dev_id __unused, int *num_configuratio
 
 static int getUnavailableStreamConfigs(int dev_id __unused, int *num_configurations, const tv_stream_config_t **configs)
 {
-    *num_configurations = 0;
-    *configs = NULL;
+    static tv_stream_config_t mConfig[1];
+    mConfig[0].stream_id = STREAM_ID_UNAVAILABLE;
+    mConfig[0].type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE;
+    mConfig[0].max_video_width = 1920;
+    mConfig[0].max_video_height = 1080;
+    *num_configurations = 1;
+    *configs = mConfig;
     return 0;
 }
 
@@ -492,6 +497,11 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
     ALOGD("open_stream: device_id = %d, streamid = %d, mStreamGivenId = %d, mDeviceGivenId = %d\n",
             device_id, stream->stream_id, priv->mpTv->getStreamGivenId(), priv->mpTv->getDeviceGivenId());
 
+    if (stream->stream_id == STREAM_ID_UNAVAILABLE) {
+        ALOGD("stream id is invalid, stream does not need to be opened");
+        return 0;
+    }
+
     if (!checkDeviceID(device_id) || !checkStreamID(stream->stream_id))
         return -EINVAL;
 
@@ -557,6 +567,11 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
 
     ALOGD("close_stream: device_id = %d, stream_id = %d, mStreamGivenId = %d, mDeviceGivenId = %d\n",
             device_id, stream_id, priv->mpTv->getStreamGivenId(), priv->mpTv->getDeviceGivenId());
+
+    if (stream_id == STREAM_ID_UNAVAILABLE) {
+        ALOGD("stream id is invalid, stream does not need to be closed");
+        return 0;
+    }
 
     if (!checkDeviceID(device_id) || !checkStreamID(stream_id))
         return -EINVAL;

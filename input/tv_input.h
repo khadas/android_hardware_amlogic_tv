@@ -63,6 +63,7 @@ typedef struct tv_input_private {
 } tv_input_private_t;
 
 enum {
+    STREAM_ID_UNAVAILABLE   = 0,
     STREAM_ID_NORMAL        = 1,
     STREAM_ID_MAIN          = 2,
     STREAM_ID_PIP           = 3,

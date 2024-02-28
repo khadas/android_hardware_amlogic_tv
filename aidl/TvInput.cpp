@@ -140,7 +140,9 @@ void TvInput::init() {
     if (ret == 0) {
         if (isSupportedStreamType(stream.type)) {
             sidebandStream = stream.sideband_stream_source_handle;
-            *_aidl_return = makeToAidl(sidebandStream);
+            if (sidebandStream != nullptr) {
+                *_aidl_return = makeToAidl(sidebandStream);
+            }
             res =  ::ndk::ScopedAStatus::ok();
         }
     } else {
