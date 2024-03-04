@@ -185,6 +185,7 @@ int TvInputIntf::stopTv(tv_source_input_t source_input)
     } else {
         ret = mTvSession->stopTv();
         mTvSession->setTunnelId(-1);
+        mTunnelId = -1;
     }
     pthread_mutex_unlock(&mMutex);
 
@@ -440,8 +441,8 @@ int TvInputIntf::StopTvInPIP() {
 
 bool TvInputIntf::IsHdmiPIP(int32_t source_input ) {
     bool ret = false;
-    if (SOURCE_YPBPR2 < (tv_source_input_t)source_input &&
-        (tv_source_input_t)source_input < SOURCE_HDMI4 &&
+     //PIP Include av & hdmi
+    if ((tv_source_input_t)source_input < SOURCE_VGA &&
         1 == mTvSession->IsSupportPIP()) {
         ret = true;
      }

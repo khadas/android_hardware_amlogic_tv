@@ -111,7 +111,7 @@ void channelControl(tv_input_private_t *priv, bool opsStart, int device_id, int 
                     priv->mpTv->stopTv(hold_source);
                 }
             }
-            if (stream_id  == STREAM_ID_PIP && (SOURCE_YPBPR2 < device_id && device_id < SOURCE_VGA)) {
+            if (stream_id  == STREAM_ID_PIP && (device_id < SOURCE_VGA)) {
                 priv->mpTv->StartTvInPIP((tv_source_input_t) device_id);
             } else {
                 priv->mpTv->startTv((tv_source_input_t) device_id);
@@ -124,7 +124,7 @@ void channelControl(tv_input_private_t *priv, bool opsStart, int device_id, int 
             /* Force the current source to stop when the current source blocks the start of other sources,
              * and the close action of the blocked source is also triggered.
              */
-            if (stream_id  == STREAM_ID_PIP && (SOURCE_YPBPR2 < device_id && device_id < SOURCE_VGA)) {
+            if (stream_id  == STREAM_ID_PIP && (device_id < SOURCE_VGA)) {
                 priv->mpTv->StopTvInPIP();
                 return;
             }
@@ -388,8 +388,8 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
         } else if (stream->stream_id == STREAM_ID_PIP) {
             //add such for pip function
             if (pPipTvStream == nullptr) {
-                if (SOURCE_YPBPR2 < input_id && input_id < SOURCE_VGA && priv->mpTv->IsHdmiPIP(input_id)) {
-                    ALOGE("getTvStream HDMI PIP stream_id=%d tunnelId=%d", stream->stream_id, 3);
+                if ( input_id < SOURCE_VGA && priv->mpTv->IsHdmiPIP(input_id)) {
+                    ALOGE("getTvStream Tvserver PIP stream_id=%d tunnelId=%d", stream->stream_id, 3);
                     pPipTvStream = am_gralloc_create_sideband_handle(AM_FIXED_TUNNEL, 3);
                 } else {
                     ALOGD("getTvStream DTVKIT PIP stream_id=%d tunnelId=%d", stream->stream_id, 2);
