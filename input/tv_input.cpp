@@ -46,7 +46,7 @@ native_handle_t *pFixedTvStream = nullptr;
 native_handle_t *pTvStream = nullptr;
 native_handle_t *pMainTvStream = nullptr;
 native_handle_t *pPipTvStream = nullptr;
-
+native_handle_t *pUnavailableTvStream = nullptr;
 
 void EventCallback::onTvEvent (const source_connect_t &scrConnect) {
     tv_input_private_t *priv = (tv_input_private_t *)(mPri);
@@ -231,7 +231,7 @@ static bool checkDeviceID(int device_id) {
 }
 
 static bool checkStreamID(int stream_id) {
-    if (stream_id >= STREAM_ID_NORMAL && stream_id <= STREAM_ID_FRAME_CAPTURE)
+    if (STREAM_ID_UNAVAILABLE <= stream_id  && stream_id <= STREAM_ID_FRAME_CAPTURE)
         return true;
     else
         return false;
@@ -404,6 +404,10 @@ static int getTvStream(tv_input_private_t *priv, tv_stream_t *stream, int input_
             stream->sideband_stream_source_handle = pPipTvStream;
         } else if (stream->stream_id == STREAM_ID_FRAME_CAPTURE) {
             stream->type = TV_STREAM_TYPE_BUFFER_PRODUCER;
+        } else if (stream->stream_id == STREAM_ID_UNAVAILABLE) {
+            pUnavailableTvStream = am_gralloc_create_sideband_handle(AM_TV_SIDEBAND, 1);
+            stream->type = TV_STREAM_TYPE_INDEPENDENT_VIDEO_SOURCE;
+            stream->sideband_stream_source_handle = pUnavailableTvStream;
         }
     }
     ALOGD("new stream tunnel id: %d",tunnelId);
@@ -497,11 +501,6 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
     ALOGD("open_stream: device_id = %d, streamid = %d, mStreamGivenId = %d, mDeviceGivenId = %d\n",
             device_id, stream->stream_id, priv->mpTv->getStreamGivenId(), priv->mpTv->getDeviceGivenId());
 
-    if (stream->stream_id == STREAM_ID_UNAVAILABLE) {
-        ALOGD("stream id is invalid, stream does not need to be opened");
-        return 0;
-    }
-
     if (!checkDeviceID(device_id) || !checkStreamID(stream->stream_id))
         return -EINVAL;
 
@@ -515,6 +514,12 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
 
     if (getTvStream(priv, stream, device_id) != 0) {
         return -EINVAL;
+    }
+
+    if (stream->stream_id == STREAM_ID_UNAVAILABLE) {
+        // UNAVAILABLE needn't to open source
+        priv->mpTv->setDeviceGivenId(device_id);
+        return 0;
     }
 
     if (SOURCE_TV <= device_id && device_id < SOURCE_ADTV) {
@@ -568,11 +573,6 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
     ALOGD("close_stream: device_id = %d, stream_id = %d, mStreamGivenId = %d, mDeviceGivenId = %d\n",
             device_id, stream_id, priv->mpTv->getStreamGivenId(), priv->mpTv->getDeviceGivenId());
 
-    if (stream_id == STREAM_ID_UNAVAILABLE) {
-        ALOGD("stream id is invalid, stream does not need to be closed");
-        return 0;
-    }
-
     if (!checkDeviceID(device_id) || !checkStreamID(stream_id))
         return -EINVAL;
 
@@ -583,6 +583,16 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
         return -EEXIST;
     }
 
+    if (stream_id == STREAM_ID_UNAVAILABLE) {
+        // UNAVAILABLE needn't to close source, only destroy handle
+        if (pUnavailableTvStream != nullptr) {
+        ALOGD("destroy pUnavailableTvStream");
+        am_gralloc_destroy_sideband_handle((native_handle_t*)pUnavailableTvStream);
+        pUnavailableTvStream = nullptr;
+        }
+        priv->mpTv->setDeviceGivenId(-1);
+        return 0;
+    }
 
     priv->mpTv->writeSurfaceTypetoVpp(TVIN_SOURCE_TYPE_OTHERS);
 
