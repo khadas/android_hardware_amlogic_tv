@@ -231,7 +231,7 @@ static bool checkDeviceID(int device_id) {
 }
 
 static bool checkStreamID(int stream_id) {
-    if (STREAM_ID_UNAVAILABLE <= stream_id  && stream_id <= STREAM_ID_FRAME_CAPTURE)
+    if (STREAM_ID_NORMAL <= stream_id  && stream_id <= STREAM_ID_UNAVAILABLE)
         return true;
     else
         return false;
