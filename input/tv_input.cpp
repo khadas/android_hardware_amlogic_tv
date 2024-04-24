@@ -113,6 +113,8 @@ void channelControl(tv_input_private_t *priv, bool opsStart, int device_id, int 
             }
             if (stream_id  == STREAM_ID_PIP && (device_id < SOURCE_VGA)) {
                 priv->mpTv->StartTvInPIP((tv_source_input_t) device_id);
+                priv->mpTv->setDeviceGivenId(device_id);
+                priv->mpTv->setStreamGivenId(stream_id);
             } else {
                 priv->mpTv->startTv((tv_source_input_t) device_id);
                 priv->mpTv->switchSourceInput((tv_source_input_t) device_id);
@@ -126,6 +128,8 @@ void channelControl(tv_input_private_t *priv, bool opsStart, int device_id, int 
              */
             if (stream_id  == STREAM_ID_PIP && (device_id < SOURCE_VGA)) {
                 priv->mpTv->StopTvInPIP();
+                priv->mpTv->setDeviceGivenId(-1);
+                priv->mpTv->setStreamGivenId(-1);
                 return;
             }
 
@@ -504,7 +508,7 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
     if (!checkDeviceID(device_id) || !checkStreamID(stream->stream_id))
         return -EINVAL;
 
-    if ((stream->stream_id == STREAM_ID_MAIN || stream->stream_id == STREAM_ID_PIP) || stream->stream_id != priv->mpTv->getStreamGivenId() ||
+    if (stream->stream_id == STREAM_ID_MAIN || stream->stream_id != priv->mpTv->getStreamGivenId() ||
             device_id != priv->mpTv->getDeviceGivenId())
         priv->mpTv->setStreamGivenId(stream->stream_id);
     else {
@@ -576,7 +580,7 @@ static int tv_input_close_stream(struct tv_input_device *dev, int device_id,
     if (!checkDeviceID(device_id) || !checkStreamID(stream_id))
         return -EINVAL;
 
-    if ((stream_id == STREAM_ID_MAIN || stream_id == STREAM_ID_PIP) || priv->mpTv->getStreamGivenId() == stream_id)
+    if (stream_id == STREAM_ID_MAIN || priv->mpTv->getStreamGivenId() == stream_id)
         priv->mpTv->setStreamGivenId(-1);
     else {
         ALOGD("stream doesn't open");
