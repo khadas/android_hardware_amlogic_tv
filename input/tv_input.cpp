@@ -111,7 +111,7 @@ void channelControl(tv_input_private_t *priv, bool opsStart, int device_id, int 
                     priv->mpTv->stopTv(hold_source);
                 }
             }
-            if (stream_id  == STREAM_ID_PIP && (device_id < SOURCE_VGA)) {
+            if (stream_id  == STREAM_ID_PIP && device_id < SOURCE_VGA) {
                 priv->mpTv->StartTvInPIP((tv_source_input_t) device_id);
                 priv->mpTv->setDeviceGivenId(device_id);
                 priv->mpTv->setStreamGivenId(stream_id);
@@ -534,7 +534,7 @@ static int tv_input_open_stream(struct tv_input_device *dev, int device_id,
         priv->mpTv->writeSurfaceTypetoVpp(TVIN_SOURCE_TYPE_OTHERS);
     }
 
-    if (stream->stream_id == STREAM_ID_PIP && priv->mpTv->IsHdmiPIP(device_id)) {
+    if (stream->stream_id == STREAM_ID_PIP && (priv->mpTv->IsHdmiPIP(device_id) || priv->mpTv->getCurrentSourceInput() != SOURCE_DTVKIT)) {
         channelControl(priv, true, device_id, stream->stream_id);
     } else if (stream->stream_id == STREAM_ID_NORMAL || stream->stream_id == STREAM_ID_MAIN || stream->stream_id == STREAM_ID_PIP) {
         if (!channelCheckStatus(priv, 0, device_id) )
