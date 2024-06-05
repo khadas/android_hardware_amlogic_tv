@@ -99,6 +99,10 @@ public:
     void setStreamGivenId(int stream_id);
     int getDeviceGivenId();
     void setDeviceGivenId(int device_id);
+    int getPipStreamGivenId();
+    void setPipStreamGivenId(int stream_id);
+    int getPipDeviceGivenId();
+    void setPipDeviceGivenId(int device_id);
     int getHdmiAvHotplugDetectOnoff();
     int setTvObserver (TvPlayObserver *ob);
     int getSupportInputDevices(int *devices, int *count);
@@ -115,6 +119,8 @@ private:
     pthread_mutex_t mMutex;
     int mStreamGivenId;
     int mDeviceGivenId;
+    int mPipStreamGivenId;
+    int mPipDeviceGivenId;
     bool mSourceStatus;
     bool mIsTv;
     int mTunnelId;

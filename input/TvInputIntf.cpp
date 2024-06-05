@@ -64,7 +64,7 @@ TvInputIntf::TvInputIntf() : mpObserver(nullptr) {
         mIsTv = false;
 
     ALOGI("create TvInputIntf: mIsTv = %d, %s.", mIsTv, TV_INPUT_VERSION);
-
+    mSourceStatus = false;
     init();
 }
 
@@ -93,6 +93,8 @@ void TvInputIntf::init()
 
     mStreamGivenId = -1;
     mDeviceGivenId = -1;
+    mPipStreamGivenId = -1;
+    mPipDeviceGivenId = -1;
     mSourceStatus = false;
     mSourceInput = SOURCE_INVALID;
     mTunnelId = -1;
@@ -168,6 +170,11 @@ int TvInputIntf::stopTv(tv_source_input_t source_input)
     pthread_mutex_lock(&mMutex);
 
     ALOGD("stopTv source_input: %d.", source_input);
+
+    if (source_input != SOURCE_DTVKIT_PIP && (source_input < SOURCE_TV || SOURCE_DTVKIT < source_input)) {
+        ALOGD("invalid source, return");
+        return 0;
+    }
 
     setSourceStatus(false);
 
@@ -347,6 +354,37 @@ void TvInputIntf::setDeviceGivenId(int device_id)
     mDeviceGivenId = device_id;
 
     pthread_mutex_unlock(&mMutex);
+}
+
+int TvInputIntf::getPipStreamGivenId()
+{
+    return mPipStreamGivenId;
+
+}
+
+void TvInputIntf::setPipStreamGivenId(int stream_id)
+{
+    pthread_mutex_lock(&mMutex);
+
+    mPipStreamGivenId = stream_id;
+
+    pthread_mutex_unlock(&mMutex);
+}
+
+int TvInputIntf::getPipDeviceGivenId()
+{
+    return mPipDeviceGivenId;
+
+}
+
+void TvInputIntf::setPipDeviceGivenId(int device_id)
+{
+    pthread_mutex_lock(&mMutex);
+
+    mPipDeviceGivenId = device_id;
+
+    pthread_mutex_unlock(&mMutex);
+
 }
 
 void TvInputIntf::setStreamTunnelId(int id)
